@@ -1,0 +1,14 @@
+{
+  "name": "panda-dl",
+  "description": "PandAのメディアギャラリにダウンロードボタンを追加する",
+  "version": "1.0.0",
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "matches": ["https://kaf.panda.ecs.kyoto-u.ac.jp/*"],
+      "js": ["scripts/contentscript.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ]
+}
