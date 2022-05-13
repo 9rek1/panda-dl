@@ -3,10 +3,11 @@ if (window != parent) {
   const galleryItems = document.querySelectorAll('#gallery > li');
 
   galleryItems.forEach((galleryItem) => {
-    // ファイル名に使えない文字は置き換え
     const fileName = galleryItem
       .querySelector('.thumb_wrapper')
-      .title.replace(/[\/\\\:\*\?"<>\|\.]/, '-');
+      .title.replace(/\.mp4$/, '') // 入っている場合がある
+      .replace(/[\/\\\:\*\?"<>\|\.]+/g, '-') // ファイル名に使えない文字は置き換え
+      .replace(/\s+/g, '_'); // スペースはダウンロードURL指定の際に使えない
 
     // hrefからvideoIDのみを抽出
     const videoId = galleryItem
@@ -33,12 +34,19 @@ if (window != parent) {
 }
 
 function downloadItem(ev) {
-  // 302コードが返ってくるが、そのままリダイレクトに従うとファイル名が不適切になる
+  // targetUrlにアクセスすると302コードが返ってくるが、そのままリダイレクトに従うとファイル名が不適切になる
   fetch(this.targetUrl, { method: 'GET' }).then((res) => {
+    // res.urlは以下のようになっている
+    // https://cfvod.kaltura.com/scf/pd/p/2075011/sp/207501100/serveFlavor/entryId/{id}/v/1/ev/3/flavorId/{id}/fileName/{全角文字等が_で置き換えられている}_(Source).mp4/name/a.mp4?{以下トークン}
+    // /fileName/{任意の文字列}/name でダウンロードファイル名を指定できる
+
     const dlLink = document.createElement('a');
 
-    // ファイル名を適切に指定するために、URLを修正
-    dlLink.href = res.url.replace(/(?<=fileName\/).*?(?=\.)/, this.fileName);
+    // 適切なファイル名に修正
+    dlLink.href = res.url.replace(
+      /(?<=fileName\/).*(?=\..+?\/name)/,
+      this.fileName
+    );
     dlLink.click();
     dlLink.remove();
   });
